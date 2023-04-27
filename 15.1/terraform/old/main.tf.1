@@ -1,0 +1,90 @@
+terraform {
+  required_providers {
+    yandex = {
+      source  = "yandex-cloud/yandex"
+    }
+  }
+  required_version = ">= 0.13"
+}
+
+provider "yandex" {
+  # service_account_key_file = "key.json"
+  token = var.yandex_token
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
+  zone                     = var.zone
+}
+
+data "yandex_compute_image" "my_image" {
+  family = "ubuntu-2004-lts"
+}
+
+# Добавляем сеть по умолчанию
+resource "yandex_vpc_network" "default" {
+  name = "vpc_network"
+}
+
+# Добавляем публичную подсеть
+# Зона ставится по дефолту
+resource "yandex_vpc_subnet" "yc-subnet-1" {
+  name           = "public"
+  description    = "public-subnet"
+  v4_cidr_blocks = ["192.168.10.0/24"]
+  network_id     = "${yandex_vpc_network.default.id}"
+}
+
+# resource "yandex_compute_image" "disk-image" {
+#   name       = "disk-image"
+#   family = "ubuntu-2204-lts"
+# }
+
+# # Добавим диск
+# resource "yandex_compute_disk" "disk-1" {
+#   name     = "disk"
+#   type     = "network-nvme"
+#   image_id = 
+# }
+
+# 1. Создать пустую VPC. Выбрать зону.
+resource "yandex_compute_instance" "empty-vm-1" {
+  name = "empty-vm-1"
+  # zone = var.yandex_zone
+  allow_stopping_for_update = true
+  resources {
+    cores = 2
+    memory = 2
+  }
+  boot_disk {
+    initialize_params {
+      image_id = "${data.yandex_compute_image.my_image.id}"
+      # image_id = "f2ep2gkojm60mnelk7r1"
+      size     = 20
+    }
+  }
+  network_interface {
+    subnet_id = "${yandex_vpc_subnet.yc-subnet-1.id}"
+    nat       = true
+  }
+}
+
+# resource "yandex_compute_instance" "test-vm-pub" {
+#   name = "test-vm-pub"
+#   # zone = var.yandex_zone
+#   resources {
+#     cores  = 2
+#     memory = 2
+#   }
+#   boot_disk {
+#     initialize_params {
+#       image_id = var.iso_id
+#       size     = 20
+#     }
+#   }
+#   network_interface {
+#     subnet_id = "${yandex_vpc_subnet.yc-subnet-a.id}"
+#     nat       = true
+#   }
+#   metadata = {
+#     user-data = data.template_file.cloud_init.rendered
+#   }
+# }
