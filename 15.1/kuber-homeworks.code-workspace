@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../kuber-homeworks"
+		},
+		{
+			"path": "../../kubernetes-for-beginners"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../virt-homeworks"
+		}
+	],
+	"settings": {}
+}
